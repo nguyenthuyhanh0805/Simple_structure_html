@@ -23,19 +23,18 @@ Installing
 
 How to install and run this Source in development environment
 
-
 Install NodeJS
 Install Bower
 Install Gulp
 Install Yeoman
-Run
 
+
+Run
 
 npm install
 gulp serve
 
 Build
-
 
 gulp build
 
@@ -52,7 +51,5 @@ Add additional notes about how to deploy this on a live system
 
 
 Built With
-
-
 
 NodeJS - The web framework used
