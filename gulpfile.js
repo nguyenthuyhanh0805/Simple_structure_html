@@ -5,12 +5,18 @@ const browserSync = require('browser-sync').create();
 const del = require('del');
 const wiredep = require('wiredep').stream;
 const runSequence = require('run-sequence');
+// const liquify = require('gulp-liquify')
 
 const $ = gulpLoadPlugins();
 const reload = browserSync.reload;
 
 let dev = true;
-
+gulp.task('liquify', () => {
+  gulp.src('app/*.{html,liquid}')
+    .pipe($.liquify({}, {base: 'app/includes'}))
+    .pipe(gulp.dest('.tmp'))
+    .pipe(reload({stream: true}));
+});
 gulp.task('styles', () => {
   return gulp.src('app/styles/*.scss')
     .pipe($.plumber())
@@ -53,8 +59,8 @@ gulp.task('lint:test', () => {
     .pipe(gulp.dest('test/spec'));
 });
 
-gulp.task('html', ['styles', 'scripts'], () => {
-  return gulp.src('app/*.html')
+gulp.task('html', ['liquify','styles', 'scripts'], () => {
+  return gulp.src('.tmp/*.html')
     .pipe($.useref({searchPath: ['.tmp', 'app', '.']}))
     .pipe($.if(/\.js$/, $.uglify({compress: {drop_console: true}})))
     .pipe($.if(/\.css$/, $.cssnano({safe: true, autoprefixer: false})))
@@ -95,7 +101,7 @@ gulp.task('extras', () => {
 gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
 
 gulp.task('serve', () => {
-  runSequence(['clean', 'wiredep'], ['styles', 'scripts', 'fonts'], () => {
+  runSequence(['clean', 'wiredep'], ['liquify','styles', 'scripts', 'fonts'], () => {
     browserSync.init({
       notify: false,
       port: 9000,
@@ -108,11 +114,11 @@ gulp.task('serve', () => {
     });
 
     gulp.watch([
-      'app/*.html',
+      '.tmp/*.html',
       'app/images/**/*',
       '.tmp/fonts/**/*'
     ]).on('change', reload);
-
+    gulp.watch(['app/*.{html,liquid}', 'app/includes/*.{html,liquid}'], ['liquify']);
     gulp.watch('app/styles/**/*.scss', ['styles']);
     gulp.watch('app/scripts/**/*.js', ['scripts']);
     gulp.watch('app/fonts/**/*', ['fonts']);
